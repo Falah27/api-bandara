@@ -12,15 +12,17 @@ class ReportsImport implements ToModel, WithStartRow
 {
     private $airports;
 
+    public $rowCount = 0;
+    public $minDate = null;
+    public $maxDate = null;
+
     public function __construct()
     {
-        // Cache ID bandara (Nama Uppercase -> ID)
         $this->airports = Airport::all()->pluck('id', 'name')->mapWithKeys(function ($item, $key) {
             return [strtoupper($key) => $item];
         })->toArray();
     }
 
-    // Data mulai dari baris ke-5 (karena ada header di atasnya)
     public function startRow(): int
     {
         return 5;
@@ -28,48 +30,54 @@ class ReportsImport implements ToModel, WithStartRow
 
     public function model(array $row)
     {
-        // Kolom 4 (E) = Branch/Lokasi
         if (!isset($row[4])) return null;
         $branchName = strtoupper(trim($row[4]));
+        
+        if (!isset($this->airports[$branchName])) return null; 
 
-        // Cek apakah bandara dikenali
-        if (!isset($this->airports[$branchName])) {
-            return null; 
-        }
-
-        // Kolom 2 (C) = Tanggal
-        // Logika parsing tanggal yang kuat (bisa baca Excel Serial atau String)
         $dateString = $row[2];
         $reportDate = null;
+
+        // --- PERBAIKAN UTAMA: MEMAKSA JADI CARBON ---
         try {
             if (is_numeric($dateString)) {
-                $reportDate = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($dateString);
+                // Jika format Excel numeric, ubah ke DateTime dulu, LALU ke Carbon
+                $dateTime = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($dateString);
+                $reportDate = Carbon::instance($dateTime); 
             } else {
-                // Format d/m/Y H:i (Indo)
+                // Format string
                 $reportDate = Carbon::createFromFormat('d/m/Y H:i', $dateString);
             }
         } catch (\Exception $e) {
             try {
+                // Fallback parsing
                 $reportDate = Carbon::parse($dateString);
             } catch (\Exception $x) {
-                return null; // Skip jika tanggal rusak
+                return null; 
+            }
+        }
+        // -------------------------------------------
+
+        if ($reportDate) {
+            $this->rowCount++;
+
+            // Sekarang aman menggunakan lt() dan gt() karena pasti Carbon
+            if ($this->minDate === null || $reportDate->lt($this->minDate)) {
+                $this->minDate = $reportDate;
+            }
+
+            if ($this->maxDate === null || $reportDate->gt($this->maxDate)) {
+                $this->maxDate = $reportDate;
             }
         }
 
-        // --- LOGIKA ANTI DUPLIKAT ---
-        // Cari data yang SAMA PERSIS (Bandara + Tanggal + Kategori).
-        // Jika ada -> Pakai yang lama. Jika tidak -> Buat baru.
         return Report::updateOrCreate(
             [
-                // [KUNCI UNIK]
-                // Sistem akan mengecek: "Apakah ada laporan di Bandara ini, Tanggal segini, Kategori ini?"
                 'airport_id'  => $this->airports[$branchName],
                 'report_date' => $reportDate,
-                'category'    => $row[8] ?? null, 
+                'category'    => $row[8] ?? null,
             ],
             [
-                // [DATA YANG DI-UPDATE]
-                // Jika data sudah ada, kolom ini akan ditimpa (berguna jika ada revisi deskripsi/status)
                 'description' => $row[38] ?? null,
                 'status'      => $row[40] ?? null,
             ]
