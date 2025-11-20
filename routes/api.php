@@ -4,10 +4,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AirportController;
+use App\Http\Controllers\ReportUploadController;
 
 Route::get('/airports', [AirportController::class, 'index']);
 Route::get('/airports/{id}/stats', [AirportController::class, 'stats']);
 Route::get('/airports/{id}/reports', [AirportController::class, 'getReportsByMonth']);
+Route::post('/upload-reports', [ReportUploadController::class, 'upload']);
+Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange']);
 /*
 |--------------------------------------------------------------------------
 | API Routes
