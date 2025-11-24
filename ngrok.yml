@@ -1,0 +1,9 @@
+version: "2"
+authtoken: 2CeEpyVXKZV2TZbo01iiLa74S7j_33A1MsXx7NTuw59s9LaCP
+tunnels:
+  laravel-backend:
+    addr: 8000
+    proto: http
+  react-frontend:
+    addr: 3000
+    proto: http
