@@ -36,48 +36,107 @@ class AirportController extends Controller
      * 2. API untuk Sidebar (Detail & Berat)
      * Menghitung statistik bulanan dan kategori secara real-time.
      */
-    public function stats($id)
+    public function stats(Request $request, $id)
     {
         $airport = Airport::findOrFail($id);
+        
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
 
-        // A. Hitung Tren Bulanan (Group by Year-Month)
-        // Format output: ['Jan 2024' => 5, 'Feb 2024' => 12, ...]
-        $monthlyStats = $airport->reports()
-            ->select(
-                DB::raw("DATE_FORMAT(report_date, '%Y-%m') as month_year"),
-                DB::raw('count(*) as count')
-            )
-            ->groupBy('month_year')
-            ->orderBy('month_year', 'asc')
-            ->get()
+        // Query Dasar
+        $query = $airport->reports();
+
+        // Variabel untuk Trend
+        $comparisonText = "Sepanjang Waktu";
+        $growthPercentage = 0;
+        $trendDirection = 'flat'; // up, down, flat
+        $hasTrendData = false;
+
+        // --- LOGIKA FILTER & TREND ---
+        if ($startDate && $endDate) {
+            // 1. Filter Periode Saat Ini
+            $query->whereDate('report_date', '>=', $startDate)
+                  ->whereDate('report_date', '<=', $endDate);
+
+            // 2. Hitung Durasi Hari (misal 30 hari)
+            $start = Carbon::parse($startDate);
+            $end = Carbon::parse($endDate);
+            $daysDiff = $start->diffInDays($end) + 1;
+
+            // 3. Tentukan Periode Sebelumnya (Mundur ke belakang sejumlah hari yang sama)
+            $prevEnd = $start->copy()->subDay(); // Kemarin
+            $prevStart = $prevEnd->copy()->subDays($daysDiff - 1); // Awal periode lalu
+
+            // 4. Hitung Total Periode Lalu
+            $prevTotal = $airport->reports()
+                ->whereDate('report_date', '>=', $prevStart)
+                ->whereDate('report_date', '<=', $prevEnd)
+                ->count();
+
+            // 5. Hitung Total Periode Ini (Akan dieksekusi di bawah)
+            // Kita hitung nanti setelah query cloned.
+            
+            // Simpan info tanggal untuk frontend
+            $comparisonText = "vs " . $prevStart->format('d M') . " - " . $prevEnd->format('d M Y');
+            $hasTrendData = true;
+        }
+
+        // Clone query
+        $qMonthly = clone $query;
+        $qCategory = clone $query;
+        $qStatus = clone $query;
+
+        // Eksekusi Total Saat Ini
+        $currentTotal = $query->count();
+
+        // --- HITUNG PERSENTASE KENAIKAN/PENURUNAN ---
+        if ($hasTrendData) {
+            if ($prevTotal > 0) {
+                $growth = (($currentTotal - $prevTotal) / $prevTotal) * 100;
+                $growthPercentage = round(abs($growth), 1); // Ambil nilai positif
+                $trendDirection = $growth > 0 ? 'up' : ($growth < 0 ? 'down' : 'flat');
+            } else if ($currentTotal > 0) {
+                $growthPercentage = 100; // Naik dari 0 ke ada
+                $trendDirection = 'up';
+            }
+        }
+        // --------------------------------------------
+
+        // A. Bulanan
+        $monthlyStats = $qMonthly
+            ->select(DB::raw("DATE_FORMAT(report_date, '%Y-%m') as month_year"), DB::raw('count(*) as count'))
+            ->groupBy('month_year')->orderBy('month_year', 'asc')->get()
             ->mapWithKeys(function ($item) {
-                // Ubah '2024-01' menjadi 'Jan 24' agar enak dibaca
                 $date = Carbon::createFromFormat('Y-m', $item->month_year);
                 return [$date->format('M Y') => $item->count];
             });
 
-        // B. Hitung Top Kategori (Group by Category)
-        $categoryStats = $airport->reports()
-            ->select('category', DB::raw('count(*) as count'))
-            ->whereNotNull('category')
-            ->groupBy('category')
-            ->orderByDesc('count')
-            ->get()
-            ->pluck('count', 'category'); // Ubah jadi format ['Go Around' => 5, ...]
+        // B. Kategori
+        $categoryStats = $qCategory
+            ->select('category', DB::raw('count(*) as count'))->whereNotNull('category')
+            ->groupBy('category')->orderByDesc('count')->get()->pluck('count', 'category');
 
-        // C. Hitung Status (Open/Closed)
-        $statusStats = $airport->reports()
-            ->select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status');
+        // C. Status
+        $statusStats = $qStatus
+            ->select('status', DB::raw('count(*) as count'))->groupBy('status')->pluck('count', 'status');
 
         return response()->json([
             'airport_name' => $airport->name,
-            'total_all_time' => $airport->reports()->count(),
-            'monthly_trend' => $monthlyStats, // <--- INI YANG KITA CARI
+            'total_all_time' => $currentTotal,
+            
+            // --- DATA TREND BARU ---
+            'trend_info' => [
+                'has_data' => $hasTrendData,
+                'percentage' => $growthPercentage,
+                'direction' => $trendDirection, // 'up' atau 'down'
+                'label' => $comparisonText
+            ],
+            // -----------------------
+
+            'monthly_trend' => $monthlyStats,
             'top_categories' => $categoryStats,
             'status_summary' => [
-                'open' => $statusStats['Analysis On Process'] ?? 0, // Sesuaikan string dengan CSV Anda
+                'open' => $statusStats['Analysis On Process'] ?? 0,
                 'closed' => $statusStats['Analysis Completed'] ?? 0,
                 'pending' => $statusStats['Send to Analyst'] ?? 0,
             ]
