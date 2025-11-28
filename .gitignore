@@ -1,15 +1,44 @@
+# ✅ LARAVEL
 /node_modules
 /public/hot
 /public/storage
 /storage/*.key
 /vendor
+
+# ✅ CRITICAL: Environment files
 .env
 .env.backup
+.env.production
+.env.local
+.env.*.local
+
+# ✅ IDE
 .phpunit.result.cache
-docker-compose.override.yml
-Homestead.json
-Homestead.yaml
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ✅ Logs
 npm-debug.log
 yarn-error.log
-/.idea
-/.vscode
+laravel.log
+
+# ✅ REACT
+/build
+/node_modules
+
+# ✅ Testing
+/coverage
+/.nyc_output
+
+# ✅ Database
+*.sqlite
+*.sqlite-journal
+
+# ✅ Misc
+Homestead.json
+Homestead.yaml
+auth.json
