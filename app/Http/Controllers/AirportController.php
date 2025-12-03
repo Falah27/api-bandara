@@ -13,37 +13,13 @@ class AirportController extends Controller
      * 1. API untuk Peta (Dengan Hierarki)
      * Return Cabang beserta Unit-unit di bawahnya
      */
-    public function index(Request $request)
+    public function index()
     {
-        $type = $request->query('type');
-        $parentId = $request->query('parent_id');
-
-        // Gunakan 'withCount' agar frontend tahu mana marker yang punya laporan
-        $query = Airport::withCount('reports');
-
-        // LOGIKA PERBAIKAN:
-        if ($parentId) {
-            // KASUS 1: Jika user minta Anak (misal ?parent_id=MATSC)
-            $query->where('parent_id', $parentId);
-            
-            if ($type) {
-                $query->where('type', $type);
-            }
-            
-        } else {
-            // KASUS 2: Initial Load - Tampilkan Cabang saja
-            if ($type) {
-                $query->where('type', $type);
-            } else {
-                $query->where('type', 'cabang');
-            }
-        }
-
-        $airports = $query->get();
-
-        // ✅ PERBAIKAN BARU: Mapping dengan Sub-Units
+        // ✅ Ambil SEMUA airport tanpa filter
+        $airports = Airport::withCount('reports')->get();
+        
         return $airports->map(function($airport) {
-            $data = [
+            return [
                 'id' => $airport->id,
                 'name' => $airport->name,
                 'city' => $airport->city,
@@ -51,25 +27,7 @@ class AirportController extends Controller
                 'coordinates' => $airport->coordinates,
                 'safetyReport' => $airport->safetyReport,
                 'total_reports' => $airport->reports_count,
-                'type' => $airport->type,
-                'parent_id' => $airport->parent_id,
             ];
-
-            // ✅ TAMBAHKAN SUB_UNITS JIKA INI CABANG
-            if ($airport->type === 'cabang') {
-                // Ambil semua anak-anaknya (unit/cabang_pembantu)
-                $data['sub_units'] = $airport->children->map(function($child) {
-                    return [
-                        'id' => $child->id,
-                        'name' => $child->name,
-                        'coordinates' => $child->coordinates,
-                        'type' => $child->type,
-                        'service' => $child->service_level ?? 'N/A',
-                    ];
-                });
-            }
-
-            return $data;
         });
     }
 
