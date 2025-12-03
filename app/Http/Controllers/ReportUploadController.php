@@ -13,7 +13,7 @@ class ReportUploadController extends Controller
     public function upload(Request $request) 
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,csv,xls'
+            'file' => 'required|mimes:xlsx,csv,xls|max:10240'
         ]);
 
         try {
@@ -40,17 +40,15 @@ class ReportUploadController extends Controller
 
     public function deleteRange(Request $request)
     {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
+        $validated = $request->validate([
+            'start_date' => 'required|date|before_or_equal:today',
+            'end_date'   => 'required|date|after_or_equal:start_date|before_or_equal:today',
         ]);
-
         try {
             // 1. BERSIHKAN FORMAT TANGGAL (Menggunakan Carbon)
             // ->format('Y-m-d') mengubahnya jadi format MySQL (misal: 2025-11-01)
-            $cleanStartDate = Carbon::parse($request->start_date)->format('Y-m-d');
-            $cleanEndDate   = Carbon::parse($request->end_date)->format('Y-m-d');
-
+            $cleanStartDate = Carbon::parse($validated['start_date'])->format('Y-m-d');
+            $cleanEndDate   = Carbon::parse($validated['end_date'])->format('Y-m-d');
             // 2. JALANKAN HAPUS
             $deletedCount = Report::whereDate('report_date', '>=', $cleanStartDate)
                                   ->whereDate('report_date', '<=', $cleanEndDate)

@@ -6,8 +6,27 @@ class Airport extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'id', 'name', 'city', 'provinsi', 'coordinates', 'safetyReport', 'total_reports', 'report_categories'
+        'id', 
+        'name', 
+        'city', 
+        'provinsi', 
+        'coordinates', 
+        'safetyReport',
+        'type',      // ✅ BARU
+        'parent_id', // ✅ BARU
     ];
+
+    // Relasi ke anak-anaknya
+    public function children()
+    {
+        return $this->hasMany(Airport::class, 'parent_id', 'id');
+    }
+
+    // Relasi ke bapaknya
+    public function parent()
+    {
+        return $this->belongsTo(Airport::class, 'parent_id', 'id');
+    }
     public $incrementing = false;
     protected $keyType = 'string';
 

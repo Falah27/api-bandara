@@ -14,10 +14,10 @@ class AddIndexesToReportsTable extends Migration
     public function up()
     {
         Schema::table('reports', function (Blueprint $table) {
-            $table->index('airport_id'); 
-            $table->index('report_date'); 
-            $table->index('category'); 
-            $table->index(['airport_id', 'report_date']); 
+            $table->index(['airport_id', 'report_date'], 'idx_airport_date');
+            $table->index('category', 'idx_category');
+            $table->index('status', 'idx_status');
+            $table->index('report_date', 'idx_report_date');
         });
     }
 
@@ -29,7 +29,11 @@ class AddIndexesToReportsTable extends Migration
     public function down()
     {
         Schema::table('reports', function (Blueprint $table) {
-            //
+            // Hapus index kalau rollback
+            $table->dropIndex('idx_airport_date');
+            $table->dropIndex('idx_category');
+            $table->dropIndex('idx_status');
+            $table->dropIndex('idx_report_date');
         });
     }
 }

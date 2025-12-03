@@ -71,16 +71,12 @@ class ReportsImport implements ToModel, WithStartRow
             }
         }
 
-        return Report::updateOrCreate(
-            [
-                'airport_id'  => $this->airports[$branchName],
-                'report_date' => $reportDate,
-                'category'    => $row[8] ?? null,
-            ],
-            [
-                'description' => $row[38] ?? null,
-                'status'      => $row[40] ?? null,
-            ]
-        );
+        return new Report([
+            'airport_id'  => $this->airports[$branchName],
+            'report_date' => $reportDate,
+            'category'    => $row[8] ?? null,
+            'description' => $row[38] ?? null,
+            'status'      => $row[40] ?? null,
+        ]);
     }
 }
