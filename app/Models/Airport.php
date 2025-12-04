@@ -12,17 +12,16 @@ class Airport extends Model
         'provinsi', 
         'coordinates', 
         'safetyReport',
-        'type',      // ✅ BARU
-        'parent_id', // ✅ BARU
+        // 'type', 
+        // 'parent_id', 
+        // 'service_level'
     ];
 
-    // Relasi ke anak-anaknya
     public function children()
     {
         return $this->hasMany(Airport::class, 'parent_id', 'id');
     }
 
-    // Relasi ke bapaknya
     public function parent()
     {
         return $this->belongsTo(Airport::class, 'parent_id', 'id');

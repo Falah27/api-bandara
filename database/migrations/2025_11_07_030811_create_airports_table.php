@@ -20,7 +20,6 @@ class CreateAirportsTable extends Migration
             $table->string('provinsi');
             $table->json('coordinates');
             $table->json('safetyReport');
-
             $table->integer('total_reports')->default(0);
             $table->json('report_categories')->nullable();
             
