@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Airport;
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -10,30 +11,34 @@ use Carbon\Carbon;
 class AirportController extends Controller
 {
     /**
-     * 1. API untuk Peta (Dengan Hierarki)
-     * Return Cabang beserta Unit-unit di bawahnya
+     * 1. API DATA UTAMA (Untuk Peta) - Optimized
      */
     public function index()
     {
-        // ✅ Ambil SEMUA airport tanpa filter
+        // Ambil semua airport
         $airports = Airport::withCount('reports')->get();
         
         return $airports->map(function($airport) {
             return [
                 'id' => $airport->id,
+                'parent_id' => $airport->parent_id, // <--- TAMBAHKAN INI
                 'name' => $airport->name,
                 'city' => $airport->city,
                 'provinsi' => $airport->provinsi,
                 'coordinates' => $airport->coordinates,
+                'level' => $airport->level, 
                 'safetyReport' => $airport->safetyReport,
                 'total_reports' => $airport->reports_count,
             ];
         });
     }
 
+    /**
+     * 2. API STATISTIK (Chart & Summary) - Optimized
+     */
     public function stats(Request $request, $id)
     {
-        $airport = Airport::findOrFail($id);
+        $airport = Airport::select('id', 'name')->findOrFail($id);
         $validated = $request->validate([
             'start_date' => 'nullable|date|before_or_equal:today',
             'end_date' => 'nullable|date|after_or_equal:start_date|before_or_equal:today',
@@ -42,57 +47,21 @@ class AirportController extends Controller
         $startDate = $validated['start_date'] ?? null;
         $endDate = $validated['end_date'] ?? null;
 
-        // Query Dasar
         $query = $airport->reports();
 
-        // Variabel untuk Trend
-        $comparisonText = "Sepanjang Waktu";
-        $growthPercentage = 0;
-        $trendDirection = 'flat';
-        $hasTrendData = false;
-
-        // --- LOGIKA FILTER & TREND ---
+        // Filter Tanggal
         if ($startDate && $endDate) {
             $query->whereDate('report_date', '>=', $startDate)
                   ->whereDate('report_date', '<=', $endDate);
-
-            $start = Carbon::parse($startDate);
-            $end = Carbon::parse($endDate);
-            $daysDiff = $start->diffInDays($end) + 1;
-
-            $prevEnd = $start->copy()->subDay();
-            $prevStart = $prevEnd->copy()->subDays($daysDiff - 1);
-
-            $prevTotal = $airport->reports()
-                ->whereDate('report_date', '>=', $prevStart)
-                ->whereDate('report_date', '<=', $prevEnd)
-                ->count();
-
-            $comparisonText = "vs " . $prevStart->format('d M') . " - " . $prevEnd->format('d M Y');
-            $hasTrendData = true;
         }
 
-        // Clone query
-        $qMonthly = clone $query;
-        $qCategory = clone $query;
-        $qStatus = clone $query;
-
-        $currentTotal = $query->count();
-
-        // --- HITUNG PERSENTASE ---
-        if ($hasTrendData) {
-            if ($prevTotal > 0) {
-                $growth = (($currentTotal - $prevTotal) / $prevTotal) * 100;
-                $growthPercentage = round(abs($growth), 1);
-                $trendDirection = $growth > 0 ? 'up' : ($growth < 0 ? 'down' : 'flat');
-            } else if ($currentTotal > 0) {
-                $growthPercentage = 100;
-                $trendDirection = 'up';
-            }
-        }
-
-        // A. Bulanan
-        $monthlyStats = $qMonthly
+        // Build base query with only needed columns
+        $baseQuery = $query->select('report_date', 'category');
+        
+        $currentTotal = (clone $baseQuery)->count();
+        
+        // Data Bulanan
+        $monthlyStats = (clone $baseQuery)
             ->select(DB::raw("DATE_FORMAT(report_date, '%Y-%m') as month_year"), DB::raw('count(*) as count'))
             ->groupBy('month_year')->orderBy('month_year', 'asc')->get()
             ->mapWithKeys(function ($item) {
@@ -100,42 +69,57 @@ class AirportController extends Controller
                 return [$date->format('M Y') => $item->count];
             });
 
-        // B. Kategori
-        $categoryStats = $qCategory
-            ->select('category', DB::raw('count(*) as count'))->whereNotNull('category')
+        // Data Kategori
+        $categoryStats = (clone $baseQuery)
+            ->whereNotNull('category')
+            ->select('category', DB::raw('count(*) as count'))
             ->groupBy('category')->orderByDesc('count')->get()->pluck('count', 'category');
-
-        // C. Status
-        $statusStats = $qStatus
-            ->select('status', DB::raw('count(*) as count'))->groupBy('status')->pluck('count', 'status');
 
         return response()->json([
             'airport_name' => $airport->name,
             'total_all_time' => $currentTotal,
-            
-            'trend_info' => [
-                'has_data' => $hasTrendData,
-                'percentage' => $growthPercentage,
-                'direction' => $trendDirection,
-                'label' => $comparisonText
-            ],
-
             'monthly_trend' => $monthlyStats,
             'top_categories' => $categoryStats,
-            'status_summary' => [
-                'open' => $statusStats['Analysis On Process'] ?? 0,
-                'closed' => $statusStats['Analysis Completed'] ?? 0,
-                'pending' => $statusStats['Send to Analyst'] ?? 0,
-            ]
         ]);
     }
 
+    /**
+     * 3. API HIERARKI (Struktur Organisasi) - Optimized
+     */
+    public function hierarchy($id)
+    {
+        $airport = Airport::with(['children' => function($q) {
+            $q->withCount('reports');
+        }])->findOrFail($id);
+
+        $children = $airport->children;
+
+        // Helper untuk format data anak
+        $formatChild = function($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'city' => $item->city,         // <--- TAMBAHAN: Agar Header Sidebar bisa update
+                'provinsi' => $item->provinsi, // <--- TAMBAHAN
+                'level' => $item->level,       // <--- TAMBAHAN
+                'reports_count' => $item->reports_count,
+                'has_reports' => $item->reports_count > 0
+            ];
+        };
+
+        return response()->json([
+            'cabang_pembantu' => $children->where('level', 'cabang_pembantu')->values()->map($formatChild),
+            'units' => $children->where('level', 'unit')->values()->map($formatChild),
+            'total_children' => $children->count()
+        ]);
+    }
+
+    /**
+     * 4. API DETAIL LAPORAN BULANAN
+     */
     public function getReportsByMonth(Request $request, $id)
     {
-        $validated = $request->validate([
-            'month' => 'required|date_format:Y-m'
-        ]);
-
+        $validated = $request->validate(['month' => 'required|date_format:Y-m']);
         $month = $validated['month'];
 
         $reports = Airport::findOrFail($id)
