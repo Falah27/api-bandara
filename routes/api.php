@@ -11,27 +11,32 @@ use App\Http\Controllers\ReportUploadController;
 |--------------------------------------------------------------------------
 */
 
-// ✅ Route biasa - Max 60 request per menit
-Route::middleware('throttle:60,1')->group(function () {
-    Route::get('/airports', [AirportController::class, 'index']);
-    Route::get('/airports/{id}/stats', [AirportController::class, 'stats']);
-    Route::get('/airports/{id}/reports', [AirportController::class, 'getReportsByMonth']);
+Route::prefix('airports')->group(function () {
+    
+    Route::get('/check-db', [AirportController::class, 'checkDatabase']);
+    Route::get('/debug-distribution', [AirportController::class, 'debugDistribution']);
+    Route::get('/move-reports', [AirportController::class, 'moveReports']);
+
+    // 1. Get all airports
+    Route::get('/', [AirportController::class, 'index']);
+    
+    // 2. Get hierarchy
+    Route::get('{id}/hierarchy', [AirportController::class, 'hierarchy']);
+    
+    // 3. Get stats
+    Route::get('{id}/stats', [AirportController::class, 'stats']);
+    
+    // 4. Get reports by month (Lama)
+    Route::get('{id}/reports', [AirportController::class, 'getReportsByMonth']);
+
+    // ✅ 5. GET REPORTS GENERAL (BARU - UNTUK DETAIL KATEGORI)
+    Route::get('{id}/reports-general', [AirportController::class, 'getReports']);
 });
 
-// ✅ Route admin - Max 10 request per menit (anti spam)
-Route::middleware('throttle:10,1')->group(function () {
-    Route::post('/upload-reports', [ReportUploadController::class, 'upload']);
-    Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange']);
-});
+// Upload Routes
+Route::post('/upload-reports', [ReportUploadController::class, 'upload']);
+Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
-});
-
-// ✅ DEBUG ROUTE (Hapus setelah testing)
-Route::get('/test', function() {
-    return response()->json([
-        'message' => 'API Laravel berfungsi!',
-        'timestamp' => now()
-    ]);
 });

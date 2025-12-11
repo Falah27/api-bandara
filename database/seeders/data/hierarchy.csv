@@ -1,0 +1,334 @@
+﻿;;;
+Jumlah Cabang;NO;LOKASI;PELAYANAN LLP
+1;1;Cabang  JATSC;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural
+3. Area Control Surveillance/Area Control Procedural
+4. Flight Information Services"
+2;2;Cabang  MATSC;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural
+3. Area Control Surveillance/Area Control Procedural
+4. Flight Information Services"
+;3;Cabang Pembantu Palu;1. Approach Control Procedural and Aerodrome Control Services Combined
+;4;Cabang Pembantu Luwuk;1. Aerodrome Control Services
+;5;Unit Mamuju;1. Aerodrome Flight Information Services (AFIS)
+;6;Unit Masamba;1. Aerodrome Flight Information Services (AFIS)
+;7;Unit Poso;1. Aerodrome Flight Information Services (AFIS)
+;8;Unit Toli Toli;1. Aerodrome Flight Information Services (AFIS)
+;9;Unit Buol;1. Aerodrome Flight Information Services (AFIS)
+;10;Unit Tana Toraja;1. Aerodrome Flight Information Services (AFIS)
+;11;Unit Mamasa;CTAF
+;12;Unit Bone;1. Aerodrome Flight Information Services (AFIS)
+;13;Unit Seko;1. Aerodrome Flight Information Services (AFIS)
+;14;Unit Rampi;1. Aerodrome Flight Information Services (AFIS)
+;15;Unit Bua;1. Aerodrome Flight Information Services (AFIS)
+;16;Unit Selayar;1. Aerodrome Flight Information Services (AFIS)
+;17;Unit Tojo Una-Una;1. Aerodrome Flight Information Services (AFIS)
+;18;Unit Banggai Laut;
+3;19;Cabang  Medan;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural
+3. Flight Information Services"
+;20;Cabang Pembantu Gunung sitoli;1. Aerodrome Control Services
+;21;Unit Siborong Borong;1. Approach Control Procedural and Aerodrome Control Services Combined
+;22;Unit Aek Godang;1. Aerodrome Flight Information Services (AFIS)
+;23;Unit Lasondre;1. Aerodrome Flight Information Services (AFIS)
+;24;Unit Sibolga;1. Aerodrome Flight Information Services (AFIS)
+;25;Unit Parapat;1. Aerodrome Flight Information Services (AFIS)
+;26;Unit Mandailing Natal;1. Aerodrome Flight Information Services (AFIS)
+4;27;Cabang  Palembang;"1. Aerodrome Control Services
+2. Approach Control Surveillance/ Approach Control Procedural"
+;28;Cabang Pembantu Pangkal Pinang;1. Aerodrome Control Services
+;29;Unit Tanjung Pandan;1. Aerodrome Control Services
+;30;Unit Bandar Lampung;1. Approach Control Procedural and Aerodrome Control Services Combined
+;31;Unit Way Kanan;1. Aerodrome Flight Information Services (AFIS) ->persetujuan sd bln sept
+;32;Cabang Pembantu Jambi;1. Aerodrome Control Services
+;33;Unit Muko Muko;1. Aerodrome Flight Information Services (AFIS)
+;34;Unit Kerinci;1. Aerodrome Flight Information Services (AFIS)
+;35;Unit Muara Bungo;1. Aerodrome Flight Information Services (AFIS)
+;36;Unit Lubuk Linggau;1. Aerodrome Flight Information Services (AFIS)
+;37;Cabang Pembantu Bengkulu;1. Aerodrome Control Services
+;38;Unit Enggano;CTAF
+;39;Unit Pagar Alam;1. Aerodrome Flight Information Services (AFIS)
+;40;Unit Pekon Serai, Krui Lampung;1. Aerodrome Flight Information Services (AFIS)
+5;41;Cabang  Yogyakarta;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural"
+;42;Cabang Pembantu Solo;1. Approach Control Procedural and Aerodrome Control Services Combined
+;43;Unit Cilacap;1. Aerodrome Control Services
+6;44;Cabang  Surabaya;"1. Aerodrome Control Services
+2. Approach Control Surveillance/ Approach Control Procedural"
+;45;Cabang Pembantu Banyuwangi;1. Aerodrome Control Services
+;46;Cabang Pembantu Malang;1. Approach Control Procedural and Aerodrome Control Services Combined
+;47;Cabang Pembantu Sumenep;1. Aerodrome Control Services
+;48;Unit Jember;1. Aerodrome Flight Information Services (AFIS)
+;49;Unit Bawean;1. Aerodrome Flight Information Services (AFIS)
+;50;Unit Blora;1. Aerodrome Flight Information Services (AFIS)
+;51;Unit Kediri;1. Aerodrome Control Services
+7;52;Cabang  Denpasar;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural 
+3. Flight Information Services"
+;53;Cabang Pembantu Labuan Bajo;1. Approach Control Procedural and Aerodrome Control Services Combined
+;54;Unit Waingapu;1. Aerodrome Control Services
+;55;Unit Tambolaka;1. Aerodrome Flight Information Services (AFIS)
+;56;Unit Pagerungan;1. Aerodrome Flight Information Services (AFIS)
+;57;Unit Buleleng;
+8;58;Cabang  Balikpapan;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural
+3. Flight Information Services"
+;59;Cabang Pembantu Samarinda;1. Aerodrome Control Services
+;60;Cabang Pembantu Berau;1. Aerodrome Control Services
+;61;Unit Datah Dawai;CTAF
+;62;Unit Melak;1. Aerodrome Flight Information Services (AFIS)
+;63;Unit Kota Bangun;Exemption
+;64;Unit Muara Wahau;Exemption
+;65;Unit Kutai Timur;
+;66;Unit Derawan;1. Aerodrome Flight Information Services (AFIS)
+;67;KCP IKN;1. Aerodrome Control Services
+9;68;Cabang  Sentani;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural
+3. Flight Information Services"
+;69;Cabang Pembantu Biak;1. Approach Control Procedural and Aerodrome Control Services Combined
+;70;Cabang Pembantu Oksibil;1. Aerodrome Control Services
+;71;Cabang Pembantu Timika;"1. Approach Control Procedural
+2. Aerodrome Control Services"
+;72;Unit Kiwirok;CTAF
+;73;Unit Dabra;Exemption
+;74;Unit Batom;CTAF
+;75;Unit Senggeh;CTAF
+;76;Unit Waris (Towe Hitam), Keerom;Exemption
+;77;Unit Serui;1. Aerodrome Flight Information Services (AFIS)
+;78;Unit Numfor;CTAF
+;79;Unit Kokonao;CTAF
+;80;Unit Mararena, Sarmi;CTAF
+;81;Unit Akimuga;CTAF
+;82;Unit Abmisibil;Exemption
+;83;Unit Aboy, Peg. Bintang;Exemption
+;84;Unit Alama, Peg. Bintang;Exemption
+;85;Unit Jila, Mimika;Exemption
+;86;Unit Jita, Mimika;Exemption
+;87;Unit Kapiraya;Exemption
+;88;Unit Luban;Exemption
+;89;Unit Okbab;Exemption
+;90;Unit Potowai, Mimika;Exemption
+;91;Unit Tsinga, Mimika;Exemption
+;92;Unit Ubrub, Keerom;Exemption
+;93;Unit Wangbe, Keerom;Exemption
+;94;Unit Yuruf, Keerom;Exemption
+;95;Unit Molof, Keerom;Exemption
+;96;Unit Lereh, Keerom;Exemption
+;97;Unit Teraplu;Exemption
+;98;Unit Kasonaweja;Exemption
+10;99;Cabang  Pontianak;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural"
+;100;Cabang Pembantu Ketapang;1. Aerodrome Control Services
+;101;Unit Sintang;1. Aerodrome Flight Information Services (AFIS)
+;102;Unit Putussibau;1. Aerodrome Flight Information Services (AFIS)
+;103;Unit Nanga Pinoh;1. Aerodrome Flight Information Services (AFIS)
+;104;Unit Sambas;Exemption
+;105;Unit Harapan, Manis Mata;Exemption
+;106;Unit Semelagi;1. Aerodrome Flight Information Services (AFIS)
+;107;Unit Singkawang;1. Aerodrome Flight Information Services (AFIS)
+11;108;Cabang  Banda Aceh;1. Approach Control Procedural and Aerodrome Control Services Combined
+;109;Unit Meulaboh;1. Aerodrome Flight Information Services (AFIS)
+;110;Unit Sinabang;1. Aerodrome Flight Information Services (AFIS)
+;111;Unit Takengon;1. Aerodrome Flight Information Services (AFIS)
+;112;Unit Tapak Tuan;1. Aerodrome Flight Information Services (AFIS)
+;113;Unit Sabang;1. Aerodrome Flight Information Services (AFIS)
+;114;Unit Singkil;CTAF
+;115;Unit Kutacane;CTAF
+;116;Unit Blang Pidi;Exemption
+;117;Unit Lhok Seumawe;1. Aerodrome Flight Information Services (AFIS)
+;118;Unit Gayo Lues;CTAF
+12;119;Cabang  Pekanbaru;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural"
+;120;Cabang Pembantu Rengat;1. Aerodrome Control Services
+;121;Unit Pasir Pangaraian;1. Aerodrome Flight Information Services (AFIS)
+;122;Unit Indragiri Hilir;Exemption
+;123;Unit Dumai;
+;124;Unit Pelalawan;1. Aerodrome Flight Information Services (AFIS)
+;125;Cabang Pembantu Padang;1. Aerodrome Control Services
+;126;Unit Rokot Sipora;1. Aerodrome Flight Information Services (AFIS)
+;127;Unit Pasaman Barat;Exemption
+13;128;Cabang  Tanjung Pinang;"1. Aerodrome Control Services
+2. Approach Control Surveillance/Approach Control Procedural"
+;129;Cabang Pembantu Batam;1. Aerodrome Control Services
+;130;Unit Singkep;1. Aerodrome Flight Information Services (AFIS)
+;131;Unit Tanjung Balai Karimun;1. Aerodrome Flight Information Services (AFIS)
+;132;Unit Bintan;Exemption
+;133;Cabang Pembantu Natuna;1. Aerodrome Control Services
+;134;Unit Anambas (Tanjung Pinang);1. Aerodrome Flight Information Services (AFIS)
+;135;Unit Matak;1. Aerodrome Control Services
+;136;Unit Tambelan;1. Aerodrome Flight Information Services (AFIS)
+14;137;Cabang  Halim;1. Aerodrome Control Services
+;138;Cabang Pembantu Curug;1. Approach Control Procedural and Aerodrome Control Services Combined
+;139;Unit Pondok Cabe;
+15;140;Cabang  Bandung;"1. Aerodrome Control Services
+2. Approach Control Procedural Services"
+;141;Cabang Pembantu Cirebon;1. Aerodrome Control Services
+;142;Unit Pangandaran;1. Aerodrome Control Services
+;143;Unit Tasikmalaya;1. Aerodrome Control Services
+;144;Unit Kertajati;1. Approach Control Procedural and Aerodrome Control Services Combined
+16;145;Cabang  Semarang;"1. Aerodrome Control Services
+2. Approach Control Procedural"
+;146;Unit Karimun Jawa;1. Aerodrome Flight Information Services (AFIS)
+;147;Unit Purbalingga;1. Aerodrome Flight Information Services (AFIS)
+17;148;Cabang  Banjarmasin;"1. Aerodrome Control Services
+2. Approach Control Procedural"
+;149;Cabang Pembantu Pangkalan Bun;1. Approach Control Procedural and Aerodrome Control Services Combined
+;150;Cabang Pembantu Sampit;1. Aerodrome Control Services
+;151;Unit Kota Baru;1. Aerodrome Flight Information Services (AFIS)
+;152;Unit Kuala Pembuang;1. Aerodrome Flight Information Services (AFIS)
+;153;Unit Batu Licin;
+;154;Unit Tanjung Warukin;CTAF
+18;155;Cabang  Palangkaraya;1. Approach Control Procedural and Aerodrome Control Services Combined
+;156;Unit Muara Teweh;1. Aerodrome Flight Information Services (AFIS)
+;157;Unit Kuala Kurun;1. Aerodrome Flight Information Services (AFIS)
+;158;Unit Buntok;1. Aerodrome Flight Information Services (AFIS)
+;159;Unit Tumbang Samba;CTAF
+;160;Unit Puruk Cahu;Exemption
+19;161;Cabang  Tarakan;"1. Aerodrome Control Services
+2. Approach Control Procedural"
+;162;Cabang Pembantu Malinau;1. Aerodrome Control Services
+;163;Unit Nunukan;1. Aerodrome Flight Information Services (AFIS)
+;164;Unit Long Bawan;1. Aerodrome Flight Information Services (AFIS)
+;165;Unit Long Ampung;1. Aerodrome Flight Information Services (AFIS)
+;166;Unit Tanjung Harapan;1. Aerodrome Flight Information Services (AFIS)
+;167;Unit Long Layu;Exemption
+;168;Unit Binuang;Exemption
+20;169;Cabang  Manado;"1. Aerodrome Control Services
+2. Approach Control Procedural"
+;170;Cabang Pembantu Ternate;1. Approach Control Procedural and Aerodrome Control Services Combined
+;171;Cabang Pembantu Gorontalo;1. Approach Control Procedural and Aerodrome Control Services Combined
+;172;Unit Labuha;1. Aerodrome Flight Information Services (AFIS)
+;173;Unit Morotai;1. Aerodrome Flight Information Services (AFIS)
+;174;Unit Melonguane;1. Aerodrome Flight Information Services (AFIS)
+;175;Unit Kao;1. Aerodrome Flight Information Services (AFIS)
+;176;Unit Galela;1. Aerodrome Flight Information Services (AFIS)
+;177;Unit Buli Maba;1. Aerodrome Flight Information Services (AFIS)
+;178;Unit Sanana;1. Aerodrome Flight Information Services (AFIS)
+;179;Unit Tahuna ;1. Aerodrome Flight Information Services (AFIS)
+;180;Unit Halmahera Tengah;CTAF
+;181;Unit Manggole Kep. Sola;Exemption
+;182;Unit Miangas;1. Aerodrome Flight Information Services (AFIS)
+;183;Unit Siau;1. Aerodrome Flight Information Services (AFIS)
+;184;Unit Bolaang Mongondow;CTAF
+;185;Unit Pohuwato;CTAF
+;186;Unit Weda Tengah;
+21;187;Cabang  Kendari;"1. Aerodrome Control Services
+2. Approach Control Procedural"
+;188;Unit Wakatobi;1. Aerodrome Flight Information Services (AFIS)
+;189;Unit Bau Bau;1. Aerodrome Flight Information Services (AFIS)
+;190;Unit Kolaka;1. Aerodrome Flight Information Services (AFIS)
+;191;Unit Sugimanuru;1. Aerodrome Flight Information Services (AFIS)
+;192;Unit Morowali;1. Aerodrome Flight Information Services (AFIS)
+;193;Unit Bahodopi;1. Aerodrome Flight Information Services (AFIS)
+22;194;Cabang  Lombok;1. Approach Control Procedural and Aerodrome Control Services Combined
+;195;Cabang Pembantu Bima;1. Aerodrome Control Services
+;196;Cabang Pembantu Sumbawa;1. Aerodrome Control Services
+;197;Unit Lunyuk, Sumbawa;Exemption
+;198;Unit Poto Tano;
+23;199;Cabang  Kupang;"1. Aerodrome Control Services
+2. Approach Control Procedural"
+;200;Cabang Pembantu Ende;1. Aerodrome Control Services
+;201;Unit Maumere;1. Aerodrome Control Services
+;202;Unit Larantuka;1. Aerodrome Flight Information Services (AFIS)
+;203;Unit Rote;1. Aerodrome Flight Information Services (AFIS)
+;204;Unit Sabu;1. Aerodrome Flight Information Services (AFIS)
+;205;Unit Bajawa;1. Aerodrome Flight Information Services (AFIS)
+;206;Unit Lewoleba;1. Aerodrome Flight Information Services (AFIS)
+;207;Unit Atambua;1. Aerodrome Flight Information Services (AFIS)
+;208;Unit Ruteng;1. Aerodrome Flight Information Services (AFIS)
+;209;Unit Alor;1. Aerodrome Flight Information Services (AFIS)
+;210;Unit Pantar;1. Aerodrome Flight Information Services (AFIS)
+24;211;Cabang  Ambon;"1. Aerodrome Control Services
+2. Approach Control Procedural"
+;212;Cabang Pembantu Tual, Karel Sadsuitubun;1. Aerodrome Control Services
+;213;Unit Dobo;1. Aerodrome Flight Information Services (AFIS)
+;214;Unit Saumlaki;1. Aerodrome Flight Information Services (AFIS)
+;215;Unit Bandanaira;TIBA EXEMPTION DARURAT
+;216;Unit Namrole;1. Aerodrome Flight Information Services (AFIS)
+;217;Unit Larat;CTAF
+;218;Unit Wahai;CTAF
+;219;Unit Amahai;CTAF
+;220;Unit Moa;CTAF
+;221;Unit Kuffar;CTAF
+;222;Unit Namlea;1. Aerodrome Flight Information Services (AFIS)
+;223;Unit Kisar;CTAF
+25;224;Cabang  Wamena;1. Aerodrome Control Services
+;225;Unit Tiom;Exemption
+;226;Unit Karubaga;Exemption
+;227;Unit Bokondini;Exemption
+;228;Unit Nop Goliat Dekai, Yahukimo;1. Aerodrome Flight Information Services (AFIS)
+;229;Unit Elelim;Exemption
+;230;Unit Anggruk;Exemption
+;231;Unit Yalimo;Exemption
+;232;Unit Holuwun;Exemption
+;233;Unit Mamberamo Tengah;Exemption
+;234;Unit Mamit;Exemption
+;235;Unit Ninia;Exemption
+;236;Unit Pasema;Exemption
+;237;Unit Sobaham;Exemption
+;238;Unit Silimo;Exemption
+;239;Unit Suru-Suru;Exemption
+;240;Unit Tolikara;Exemption
+;241;Unit Mapnduma, Nduga;Exemption
+;242;Unit Mugi, Nduga;Exemption
+;243;Unit Paro, Nduga;Exemption
+;244;Unit Mamberamo Raya;Exemption
+;245;Unit Kenyam, Nduga;Exemption
+26;246;Cabang  Nabire;1. Approach Control Procedural and Aerodrome Control Services Combined
+;247;Unit Illaga;1. Aerodrome Flight Information Services (AFIS)
+;248;Unit Bilorai;1. Aerodrome Flight Information Services (AFIS)
+;249;Unit Mulia;1. Aerodrome Flight Information Services (AFIS)
+;250;Unit Moanamani;CTAF
+;251;Unit Enarotali;1. Aerodrome Flight Information Services (AFIS)
+;252;Unit Waghete, Paniai;TIBA EXEMPTION DARURAT
+;253;Unit Illu;1. Aerodrome Flight Information Services (AFIS)
+;254;Unit Sinak;CTAF
+;255;Unit Aboyaga, Nabire;Exemption
+;256;Unit Duma;Exemption
+;257;Unit Obano, Paniai;Exemption
+;258;Unit Obano, Intan Jaya;Exemption
+;259;Unit Botawa;Exemption
+;260;Unit Beoga, Intan Jaya;Exemption
+;261;Unit Bilai, Intan Jaya;Exemption
+;262;Unit Puncak Jaya;Exemption
+27;263;Cabang  Sorong;"1. Approach Control Procedural
+2. Aerodrome Control Services"
+;264;Cabang Pembantu Manokwari;1. Approach Control Procedural and Aerodrome Control Services Combined
+;265;Unit Babo;TIBA EXEMPTION DARURAT
+;266;Unit Bintuni;1. Aerodrome Flight Information Services (AFIS)
+;267;Unit Fak Fak;1. Aerodrome Flight Information Services (AFIS)
+;268;Unit Kaimana;1. Aerodrome Flight Information Services (AFIS)
+;269;Unit Anggi;Exemption
+;270;Unit Ayawasi;CTAF
+;271;Unit Kambuaya;CTAF
+;272;Unit Inanwatan;CTAF
+;273;Unit Marinda, Waisai, Raja Ampat;1. Aerodrome Flight Information Services (AFIS)
+;274;Unit Teminabuan;1. Aerodrome Flight Information Services (AFIS)
+;275;Unit Kebar;CTAF
+;276;Unit Merdey, Teluk Bintuni;CTAF
+;277;Unit Kabare;Exemption
+;278;Unit Wasior;CTAF
+;279;Unit Ransiki;Exemption
+;280;Unit Werur, Tambrauw, Papua Barat;CTAF
+;281;Unit Segun, Sorong;Exemption
+28;282;Cabang  Merauke;1. Approach Control Procedural and Aerodrome Control Services Combined
+;283;Cabang Pembantu Tanah Merah;1. Aerodrome Control Services
+;284;Unit Ewer;1. Aerodrome Flight Information Services (AFIS)
+;285;Unit Kepi;1. Aerodrome Flight Information Services (AFIS)
+;286;Unit Bade;CTAF
+;287;Unit Kimam;CTAF
+;288;Unit Okaba;CTAF
+;289;Unit Mindiptanah;CTAF
+;290;Unit Kamur;CTAF
+;291;Unit Bomakia;Exemption
+;292;Unit Senggo;Exemption
+;293;Unit Manggelum;Exemption
+;294;Unit Yaniruma;Exemption
+;295;Unit Wanggemalo;Exemption
+;296;Unit Iwur;Exemption
+;297;Unit Aboge;Exemption
+;298;Unit Wanam;Exemption
+;299;Unit Borome;Exemption
+;300;Unit Kebo, Paniai;Exemption
+;301;Unit Kilmit;Exemption
+;;;
