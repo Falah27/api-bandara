@@ -22,9 +22,7 @@ class Report extends Model
         'report_date' => 'datetime',
     ];
 
-    /**
-     * SATU Laporan (Report) DIMILIKI OLEH SATU Airport
-     */
+
     public function airport()
     {
         return $this->belongsTo(Airport::class, 'airport_id', 'id');
