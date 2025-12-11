@@ -125,6 +125,7 @@ class HierarchySeeder extends Seeder
             ['lokasi'=>'Unit Blora'],
             ['lokasi'=>'Unit Kediri'],
 
+            
             // 7. DENPASAR (5 Anak)
             ['lokasi'=>'Cabang  Denpasar'],
             ['lokasi'=>'Cabang Pembantu Labuan Bajo'],
