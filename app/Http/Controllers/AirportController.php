@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Airport;
 use App\Models\Report;
+use App\Http\Requests\StatsFilterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -96,29 +98,38 @@ class AirportController extends Controller
                 ->pluck('total', 'airport_id');
             
             return $airports->map(function ($airport) use ($reportCounts) {
+                // Pastikan coordinates adalah array untuk JSON serialization
+                $coordinates = $airport->coordinates;
+                if (is_string($coordinates)) {
+                    $coordinates = json_decode($coordinates, true);
+                }
+                
+                // Pastikan safetyReport adalah array
+                $safetyReport = $airport->safetyReport;
+                if (is_string($safetyReport)) {
+                    $safetyReport = json_decode($safetyReport, true);
+                }
+                
                 return [
                     'id' => $airport->id,
                     'parent_id' => $airport->parent_id,
                     'name' => $airport->name,
                     'city' => $airport->city,
                     'provinsi' => $airport->provinsi,
-                    'coordinates' => $airport->coordinates,
+                    'coordinates' => $coordinates, // Ensure it's array [lat, lng]
                     'level' => $airport->level,
-                    'safetyReport' => $airport->safetyReport,
+                    'safetyReport' => $safetyReport,
                     'total_reports' => $reportCounts[$airport->id] ?? 0,
                 ];
             });
         });
     }
 
-    public function stats(Request $request, $id)
+    public function stats(StatsFilterRequest $request, $id)
     {
         $airport = Airport::findOrFail($id);
         
-        $validated = $request->validate([
-            'start_date' => 'nullable|date|before_or_equal:today',
-            'end_date'   => 'nullable|date|after_or_equal:start_date|before_or_equal:today',
-        ]);
+        $validated = $request->validated();
 
         $startDate = $validated['start_date'] ?? null;
         $endDate   = $validated['end_date'] ?? null;
@@ -284,5 +295,28 @@ class AirportController extends Controller
                 'total_children' => $children->count()
             ]);
         });
+    }
+
+    /**
+     * Debug endpoint untuk test format coordinates
+     */
+    public function testCoordinates()
+    {
+        $sample = Airport::take(5)->get()->map(function($airport) {
+            return [
+                'id' => $airport->id,
+                'name' => $airport->name,
+                'coordinates_raw' => $airport->getAttributes()['coordinates'] ?? null,
+                'coordinates_casted' => $airport->coordinates,
+                'coordinates_type' => gettype($airport->coordinates),
+                'is_valid' => is_array($airport->coordinates) && count($airport->coordinates) === 2
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Coordinates validation',
+            'sample' => $sample,
+            'cache_status' => Cache::has('airports_index') ? 'cached' : 'not cached'
+        ]);
     }
 }

@@ -3,113 +3,95 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\ReportUploadRequest;
+use App\Http\Requests\DateRangeRequest;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ReportsImport; 
 use App\Models\Report;
 use App\Models\Airport;
+use App\Jobs\ProcessReportUpload;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class ReportUploadController extends Controller
 {
-    public function upload(Request $request) 
+    /**
+     * Upload dengan Queue untuk avoid timeout
+     */
+    public function upload(ReportUploadRequest $request) 
     {
-        // 1. Validasi File
-        $request->validate([
-            'file' => 'required|mimes:xlsx,csv,xls|max:10240'
-        ]);
-
-        DB::beginTransaction();
+        // 1. File sudah tervalidasi via ReportUploadRequest
 
         try {
             // 2. Baca Excel ke Array
-            // Kita gunakan class kosong ReportsImport hanya sebagai perantara
             $arrays = Excel::toArray(new ReportsImport, $request->file('file'));
-            $sheet = $arrays[0] ?? []; // Ambil sheet pertama
+            $sheet = $arrays[0] ?? [];
 
-            $count = 0;
-            $skipped = 0;
-            $errors = [];
+            // 3. Generate unique upload ID untuk tracking
+            $uploadId = Str::uuid()->toString();
 
-            // 3. Loop Data (Mulai dari baris ke-5, index 4)
-            foreach ($sheet as $index => $row) {
-                // Skip Header (Baris 1-4 di Excel = Index 0-3 di Array)
-                if ($index < 4) continue; 
+            // 4. Audit Log - Upload Started
+            Log::info('Report upload started', [
+                'upload_id' => $uploadId,
+                'filename' => $request->file('file')->getClientOriginalName(),
+                'filesize' => $request->file('file')->getSize(),
+                'total_rows' => count($sheet),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
 
-                // Ambil Data Kolom (Sesuaikan Index Kolom dengan Excel Anda)
-                // A=0, B=1, C=2 (Date), E=4 (Branch/Location), I=8 (Category), AL=37 (Desc), AN=39 (Status)
-                
-                $rawDate   = $row[2] ?? null; 
-                $rawBranch = $row[4] ?? null;
-                $category  = $row[8] ?? 'Uncategorized';
-                $desc      = $row[37] ?? '-';
-                
-                // Ambil status (Cek kolom Analyst, jika kosong cek Investigasi)
-                $statusRaw = $row[39] ?? $row[38] ?? 'Open'; 
+            // 5. Dispatch ke Queue (Background Processing)
+            ProcessReportUpload::dispatch($sheet, $uploadId);
 
-                // Skip jika data vital kosong
-                if (empty($rawBranch) || empty($rawDate)) {
-                    continue;
-                }
-
-                // 4. SMART MATCHING LOKASI
-                // Cari ID Airport berdasarkan nama di Excel
-                $airport = $this->findAirportSmart($rawBranch);
-
-                if (!$airport) {
-                    $errors[] = "Baris " . ($index + 1) . ": Lokasi '$rawBranch' tidak ditemukan di database.";
-                    continue; 
-                }
-
-                // 5. FORMAT TANGGAL
-                $reportDate = $this->transformExcelDate($rawDate);
-
-                // 6. CEK DUPLIKASI (Agar tidak double kalau diupload ulang)
-                // Kriteria: Airport sama, Tanggal sama, Deskripsi sama
-                $exists = Report::where('airport_id', $airport->id)
-                                ->where('report_date', $reportDate)
-                                ->where('description', $desc)
-                                ->exists();
-
-                if ($exists) {
-                    $skipped++;
-                    continue; // Lewati proses simpan, lanjut ke baris berikutnya
-                }
-
-                // 7. SIMPAN KE TABEL REPORTS
-                Report::create([
-                    'airport_id'  => $airport->id,
-                    'report_date' => $reportDate,
-                    'category'    => $category,
-                    'description' => $desc,
-                    'status'      => $this->mapStatus($statusRaw),
-                    'location'    => $rawBranch, // Simpan nama asli excel sebagai referensi
-                ]);
-
-                $count++;
-            }
-
-            DB::commit();
-
-            $message = "Selesai. $count data baru berhasil diimpor.";
-            if ($skipped > 0) {
-                $message .= " ($skipped data dilewati karena sudah ada).";
-            }
-            
             return response()->json([
-                'message' => $message,
-                'errors' => $errors 
-            ], 200);
+                'message' => 'Upload dimulai. Proses berjalan di background.',
+                'upload_id' => $uploadId,
+                'total_rows' => count($sheet),
+                'check_url' => "/api/upload-status/{$uploadId}"
+            ], 202); // 202 = Accepted
 
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Upload Error: " . $e->getMessage());
+            Log::error("Upload Error", [
+                'error' => $e->getMessage(),
+                'filename' => $request->file('file')->getClientOriginalName(),
+                'ip_address' => $request->ip()
+            ]);
             
             return response()->json([
-                'error' => 'Gagal memproses data. ' . $e->getMessage()
+                'error' => 'Gagal memproses file. ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Check Upload Progress
+     */
+    public function uploadStatus($uploadId)
+    {
+        // Cek progress
+        $progress = Cache::get("upload_progress_{$uploadId}");
+        
+        // Cek hasil akhir
+        $result = Cache::get("upload_result_{$uploadId}");
+
+        if ($result) {
+            return response()->json($result);
+        }
+
+        if ($progress) {
+            return response()->json([
+                'status' => 'processing',
+                'progress' => $progress
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'not_found',
+            'message' => 'Upload ID tidak ditemukan atau sudah expired'
+        ], 404);
     }
 
     // --- HELPER FUNCTIONS ---
@@ -166,17 +148,15 @@ class ReportUploadController extends Controller
         return 'Analysis On Process';
     }
 
-    public function deleteRange(Request $request)
+    public function deleteRange(DateRangeRequest $request)
     {
-        $validated = $request->validate([
-            'start_date' => 'required|date|before_or_equal:today',
-            'end_date'   => 'required|date|after_or_equal:start_date|before_or_equal:today',
-        ]);
+        $validated = $request->validated();
 
         try {
             $cleanStartDate = Carbon::parse($validated['start_date'])->format('Y-m-d');
             $cleanEndDate   = Carbon::parse($validated['end_date'])->format('Y-m-d');
             
+            // Soft delete (data masih bisa di-restore)
             $deletedCount = Report::whereDate('report_date', '>=', $cleanStartDate)
                                   ->whereDate('report_date', '<=', $cleanEndDate)
                                   ->delete();
@@ -184,12 +164,77 @@ class ReportUploadController extends Controller
             $startStr = Carbon::parse($cleanStartDate)->format('d M Y');
             $endStr   = Carbon::parse($cleanEndDate)->format('d M Y');
 
+            // Audit Log
+            Log::info('Reports deleted (soft)', [
+                'count' => $deletedCount,
+                'date_range' => [$cleanStartDate, $cleanEndDate],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            // Clear cache karena data berubah
+            Cache::forget('airports_index');
+            Cache::tags('airport_hierarchy')->flush();
+
             return response()->json([
                 'message' => "Anda berhasil hapus {$deletedCount} data dari tanggal {$startStr} s/d {$endStr}.",
-                'count' => $deletedCount
+                'count' => $deletedCount,
+                'note' => 'Data dapat di-restore dalam 30 hari'
             ], 200);
 
         } catch (\Exception $e) {
+            Log::error('Delete range failed', [
+                'error' => $e->getMessage(),
+                'date_range' => $validated,
+                'ip_address' => $request->ip()
+            ]);
+            
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Restore deleted reports
+     */
+    public function restoreRange(DateRangeRequest $request)
+    {
+        $validated = $request->validated();
+
+        try {
+            $cleanStartDate = Carbon::parse($validated['start_date'])->format('Y-m-d');
+            $cleanEndDate   = Carbon::parse($validated['end_date'])->format('Y-m-d');
+            
+            // Restore soft deleted records
+            $restoredCount = Report::onlyTrashed()
+                                  ->whereDate('report_date', '>=', $cleanStartDate)
+                                  ->whereDate('report_date', '<=', $cleanEndDate)
+                                  ->restore();
+
+            $startStr = Carbon::parse($cleanStartDate)->format('d M Y');
+            $endStr   = Carbon::parse($cleanEndDate)->format('d M Y');
+
+            // Audit Log
+            Log::info('Reports restored', [
+                'count' => $restoredCount,
+                'date_range' => [$cleanStartDate, $cleanEndDate],
+                'ip_address' => $request->ip(),
+            ]);
+
+            // Clear cache
+            Cache::forget('airports_index');
+            Cache::tags('airport_hierarchy')->flush();
+
+            return response()->json([
+                'message' => "Berhasil restore {$restoredCount} data dari tanggal {$startStr} s/d {$endStr}.",
+                'count' => $restoredCount
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Restore range failed', [
+                'error' => $e->getMessage(),
+                'date_range' => $validated,
+            ]);
+            
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

@@ -2,10 +2,11 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Report extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     // Kolom yang diisi oleh RawReportSeeder
     protected $fillable = [
@@ -15,11 +16,13 @@ class Report extends Model
         'status',
         'description',
         'airport_id',
+        'location',
     ];
 
     // Otomatis ubah tanggal
     protected $casts = [
         'report_date' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**

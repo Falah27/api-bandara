@@ -33,9 +33,25 @@ Route::prefix('airports')->group(function () {
     Route::get('{id}/reports-general', [AirportController::class, 'getReports']);
 });
 
-// Upload Routes
-Route::post('/upload-reports', [ReportUploadController::class, 'upload']);
-Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange']);
+// Debug & Utility Routes
+Route::get('/clear-cache', function () {
+    \Illuminate\Support\Facades\Cache::flush();
+    return response()->json(['message' => 'Cache cleared successfully']);
+});
+
+Route::get('/test-coordinates', [AirportController::class, 'testCoordinates']);
+
+// Upload Routes with Rate Limiting
+Route::post('/upload-reports', [ReportUploadController::class, 'upload'])
+    ->middleware('throttle:10,1'); // Max 10 uploads per minute
+
+Route::get('/upload-status/{uploadId}', [ReportUploadController::class, 'uploadStatus']);
+
+Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange'])
+    ->middleware('throttle:20,1'); // Max 20 deletes per minute
+
+Route::post('/restore-reports', [ReportUploadController::class, 'restoreRange'])
+    ->middleware('throttle:20,1'); // Restore soft-deleted reports
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
