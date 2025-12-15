@@ -6,6 +6,7 @@ use App\Models\Airport;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -33,60 +34,80 @@ class AirportController extends Controller
     }
 
     /**
-     * Smart Query Logic
+     * Smart Query Logic - Optimized dengan caching
      */
     private function getSmartReportsQuery(Airport $airport): Builder
     {
-        // 1. Cek Relasi Langsung
-        $directQuery = $airport->reports();
-        if ($directQuery->exists()) {
-            return $directQuery->getQuery(); 
-        }
-
-        // 2. Cek by Name
-        $queryByName = Report::where('airport_id', 'LIKE', "%{$airport->name}%");
-        if ($queryByName->exists()) {
-            return $queryByName;
-        }
-
-        // 3. Cek by Cleaned Name
-        $cleanName = trim(str_replace(['Unit', 'Cabang Pembantu', 'Cabang', 'Pos', 'Bandara'], '', $airport->name));
-        if (!empty($cleanName) && strlen($cleanName) >= 3) {
-            $queryByCleanName = Report::where('airport_id', 'LIKE', "%{$cleanName}%");
-            if ($queryByCleanName->exists()) {
-                return $queryByCleanName;
+        // Cache mapping strategy per airport untuk menghindari repeated checks
+        $cacheKey = "airport_query_strategy_{$airport->id}";
+        
+        $strategy = Cache::remember($cacheKey, 3600, function () use ($airport) {
+            // 1. Cek Relasi Langsung (paling efisien)
+            if ($airport->reports()->exists()) {
+                return ['type' => 'direct', 'value' => null];
             }
-        }
 
-        // 4. Cek by City
-        if (!empty($airport->city) && strlen($airport->city) >= 3) {
-            $queryByCity = Report::where('airport_id', 'LIKE', "%{$airport->city}%");
-            if ($queryByCity->exists()) {
-                return $queryByCity;
+            // 2. Cek by Name
+            if (Report::where('airport_id', 'LIKE', "%{$airport->name}%")->exists()) {
+                return ['type' => 'name', 'value' => $airport->name];
             }
-        }
 
-        return $airport->reports()->getQuery();
+            // 3. Cek by Cleaned Name
+            $cleanName = trim(str_replace(['Unit', 'Cabang Pembantu', 'Cabang', 'Pos', 'Bandara'], '', $airport->name));
+            if (!empty($cleanName) && strlen($cleanName) >= 3) {
+                if (Report::where('airport_id', 'LIKE', "%{$cleanName}%")->exists()) {
+                    return ['type' => 'clean_name', 'value' => $cleanName];
+                }
+            }
+
+            // 4. Cek by City
+            if (!empty($airport->city) && strlen($airport->city) >= 3) {
+                if (Report::where('airport_id', 'LIKE', "%{$airport->city}%")->exists()) {
+                    return ['type' => 'city', 'value' => $airport->city];
+                }
+            }
+
+            return ['type' => 'direct', 'value' => null];
+        });
+
+        // Gunakan strategy yang sudah di-cache (compatible dengan PHP 7.x)
+        switch ($strategy['type']) {
+            case 'name':
+                return Report::where('airport_id', 'LIKE', "%{$strategy['value']}%");
+            case 'clean_name':
+                return Report::where('airport_id', 'LIKE', "%{$strategy['value']}%");
+            case 'city':
+                return Report::where('airport_id', 'LIKE', "%{$strategy['value']}%");
+            case 'direct':
+            default:
+                return $airport->reports()->getQuery();
+        }
     }
 
     public function index()
     {
-        $airports = Airport::get();
-
-        return $airports->map(function ($airport) {
-            $smartQuery = $this->getSmartReportsQuery($airport);
+        // Cache selama 5 menit karena data jarang berubah
+        return Cache::remember('airports_index', 300, function () {
+            $airports = Airport::all();
             
-            return [
-                'id' => $airport->id,
-                'parent_id' => $airport->parent_id,
-                'name' => $airport->name,
-                'city' => $airport->city,
-                'provinsi' => $airport->provinsi,
-                'coordinates' => $airport->coordinates,
-                'level' => $airport->level,
-                'safetyReport' => $airport->safetyReport,
-                'total_reports' => $smartQuery->count(),
-            ];
+            // Hitung total reports per airport dengan 1 query efisien
+            $reportCounts = Report::select('airport_id', DB::raw('count(*) as total'))
+                ->groupBy('airport_id')
+                ->pluck('total', 'airport_id');
+            
+            return $airports->map(function ($airport) use ($reportCounts) {
+                return [
+                    'id' => $airport->id,
+                    'parent_id' => $airport->parent_id,
+                    'name' => $airport->name,
+                    'city' => $airport->city,
+                    'provinsi' => $airport->provinsi,
+                    'coordinates' => $airport->coordinates,
+                    'level' => $airport->level,
+                    'safetyReport' => $airport->safetyReport,
+                    'total_reports' => $reportCounts[$airport->id] ?? 0,
+                ];
+            });
         });
     }
 
@@ -229,28 +250,39 @@ class AirportController extends Controller
 
     public function hierarchy($id)
     {
-        $airport = Airport::with('children')->findOrFail($id);
-        $children = $airport->children;
-
-        $formatChild = function($item) {
-            $smartQuery = $this->getSmartReportsQuery($item);
-            $count = $smartQuery->count();
+        // Cache selama 5 menit per airport
+        return Cache::remember("airport_hierarchy_{$id}", 300, function () use ($id) {
+            $airport = Airport::with('children')->findOrFail($id);
+            $children = $airport->children;
             
-            return [
-                'id' => $item->id,
-                'name' => $item->name,
-                'city' => $item->city,
-                'provinsi' => $item->provinsi,
-                'level' => $item->level,
-                'reports_count' => $count,
-                'has_reports' => $count > 0
-            ];
-        };
+            // Ambil semua child IDs
+            $childIds = $children->pluck('id')->toArray();
+            
+            // Hitung reports untuk semua children dalam 1 query
+            $reportCounts = Report::select('airport_id', DB::raw('count(*) as total'))
+                ->whereIn('airport_id', $childIds)
+                ->groupBy('airport_id')
+                ->pluck('total', 'airport_id');
+            
+            $formatChild = function($item) use ($reportCounts) {
+                $count = $reportCounts[$item->id] ?? 0;
+                
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'city' => $item->city,
+                    'provinsi' => $item->provinsi,
+                    'level' => $item->level,
+                    'reports_count' => $count,
+                    'has_reports' => $count > 0
+                ];
+            };
 
-        return response()->json([
-            'cabang_pembantu' => $children->where('level', 'cabang_pembantu')->values()->map($formatChild),
-            'units' => $children->where('level', 'unit')->values()->map($formatChild),
-            'total_children' => $children->count()
-        ]);
+            return response()->json([
+                'cabang_pembantu' => $children->where('level', 'cabang_pembantu')->values()->map($formatChild),
+                'units' => $children->where('level', 'unit')->values()->map($formatChild),
+                'total_children' => $children->count()
+            ]);
+        });
     }
 }
