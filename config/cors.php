@@ -19,7 +19,17 @@ return [
 
     'allowed_methods' => ['*'],
 
+<<<<<<< HEAD
     'allowed_origins' => array_filter(explode(',', env('FRONTEND_URLS', 'http://localhost:3000'))),
+=======
+    'allowed_origins' => [
+        'http://localhost:3000',      // React default port
+        'http://localhost:3001',      // Alternative port
+        'http://localhost:5173',      // Vite default port
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:5173',
+    ],
+>>>>>>> 754487c (24/12)
 
     'allowed_origins_patterns' => [],
 

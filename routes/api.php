@@ -33,6 +33,7 @@ Route::prefix('airports')->group(function () {
     Route::get('{id}/reports-general', [AirportController::class, 'getReports']);
 });
 
+<<<<<<< HEAD
 // Debug & Utility Routes
 Route::get('/clear-cache', function () {
     \Illuminate\Support\Facades\Cache::flush();
@@ -52,6 +53,14 @@ Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange'])
 
 Route::post('/restore-reports', [ReportUploadController::class, 'restoreRange'])
     ->middleware('throttle:20,1'); // Restore soft-deleted reports
+=======
+// Report Detail Route
+Route::get('/reports/{id}', [AirportController::class, 'detailReport']);
+
+// Upload Routes
+Route::post('/upload-reports', [ReportUploadController::class, 'upload']);
+Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange']);
+>>>>>>> 754487c (24/12)
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

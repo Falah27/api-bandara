@@ -253,10 +253,89 @@ class AirportController extends Controller
     // ✅ FUNGSI BARU: Mengambil Detail Lengkap Laporan (Dipanggil saat Card diklik)
     public function detailReport($id)
     {
-        $report = Report::findOrFail($id);
-        
-        // Kembalikan semua data (termasuk description, location, evidence, dll)
-        return response()->json($report);
+        try {
+            $report = Report::with('airport')->find($id);
+            
+            if (!$report) {
+                return response()->json([
+                    'error' => 'Report not found',
+                    'message' => "Report dengan ID {$id} tidak ditemukan"
+                ], 404);
+            }
+            
+            // Pastikan airport ada
+            if (!$report->airport) {
+                Log::warning("Report {$id} tidak memiliki airport yang valid. Airport ID: {$report->airport_id}");
+            }
+            
+            // Format data dengan informasi lengkap
+            return response()->json([
+                'id' => $report->id,
+                'report_date' => $report->report_date,
+                'input_date' => $report->input_date,
+                'category' => $report->category,
+                'classification' => $report->classification,
+                'ssr_code' => $report->ssr_code,
+                'status' => $report->status,
+                'description' => $report->description ?: '-',
+                'location' => $report->location,
+                'ats_unit' => $report->ats_unit,
+                
+                // Detail penerbangan
+                'flight_info' => [
+                    'aircraft_id' => $report->aircraft_id,  // Flight number
+                    'registration' => $report->aircraft_reg,
+                    'aircraft_type' => $report->aircraft_type,
+                    'pic_name' => $report->pic_name,
+                    'operator' => $report->operator,
+                    'flight_rules' => $report->flight_rules,
+                    'flight_phase' => $report->flight_phase,
+                    'departure' => $report->departure_airport,
+                    'destination' => $report->destination_airport,
+                    'flight_type' => $report->flight_type,
+                ],
+                
+                // Informasi cuaca
+                'weather' => [
+                    'condition' => $report->weather_condition,
+                    'visibility' => $report->visibility,
+                    'wind' => $report->wind,
+                    'cloud' => $report->cloud,
+                    'temperature' => $report->temperature,
+                ],
+                
+                // Remark & status tambahan
+                'remark' => $report->remark,
+                'status_investigasi' => $report->status_investigasi,
+                
+                // Informasi Airport
+                'airport' => $report->airport ? [
+                    'id' => $report->airport->id,
+                    'name' => $report->airport->name,
+                    'city' => $report->airport->city,
+                    'provinsi' => $report->airport->provinsi,
+                    'level' => $report->airport->level,
+                ] : null,
+                
+                // Metadata
+                'created_at' => $report->created_at,
+                'updated_at' => $report->updated_at,
+                
+                // Format tanggal yang lebih readable
+                'formatted_date' => $report->report_date ? Carbon::parse($report->report_date)->format('d M Y H:i') : '-',
+                'relative_date' => $report->report_date ? Carbon::parse($report->report_date)->diffForHumans() : '-',
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error("Error fetching report detail {$id}: " . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            
+            return response()->json([
+                'error' => 'Internal Server Error',
+                'message' => 'Terjadi kesalahan saat mengambil detail report',
+                'debug' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     public function hierarchy($id)
