@@ -162,8 +162,8 @@ class ReportUploadController extends Controller
                 $inputDateFormatted = $inputDate ? $this->transformExcelDate($inputDate) : null;
 
                 // 6.5. CLEAN NUMERIC FIELDS - Convert '-', empty string, atau non-numeric ke null
-                $cleanLat = $this->cleanNumericValue($latitude);
-                $cleanLong = $this->cleanNumericValue($longitude);
+                $cleanLat  = $this->sanitizeCoordinate($latitude);
+                $cleanLong = $this->sanitizeCoordinate($longitude);
 
                 // 7. CEK DUPLIKASI - Gunakan memory lookup (sangat cepat!)
                 $uniqueKey = $airport->id . '|' . $reportDate . '|' . md5($desc);
@@ -395,6 +395,37 @@ class ReportUploadController extends Controller
         
         // Jika bukan numeric, return null
         return null;
+    }
+
+    private function sanitizeCoordinate($value)
+    {
+        // 1. Bersihkan input dasar
+        if ($value === null || $value === '' || $value === '-') {
+            return null;
+        }
+        if (is_string($value)) {
+            $value = trim($value);
+            // Ganti koma dengan titik jika ada (untuk format Indonesia)
+            $value = str_replace(',', '.', $value);
+        }
+        
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        $floatVal = floatval($value);
+
+        // 2. Logika Perbaikan Otomatis
+        // Batas absolut koordinat bumi adalah 180 derajat.
+        // Jika nilai absolutnya > 180, berarti titik desimalnya geser atau hilang.
+        // Kita bagi dengan 10 berulang kali sampai nilainya <= 180.
+        
+        while (abs($floatVal) > 180) {
+            $floatVal /= 10;
+        }
+
+        // Opsional: Pembulatan agar tidak terlalu panjang di DB
+        return round($floatVal, 7); 
     }
 
     public function deleteRange(Request $request)
