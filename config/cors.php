@@ -6,30 +6,15 @@ return [
     |--------------------------------------------------------------------------
     | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    // ✅ PERBAIKAN: Gunakan '*' agar SEMUA URL terkena whitelist CORS
+    // Ini membantu mengatasi masalah jika browser mengakses path yang tidak terduga
+    'paths' => ['*'],
 
     'allowed_methods' => ['*'],
 
-<<<<<<< HEAD
-    'allowed_origins' => array_filter(explode(',', env('FRONTEND_URLS', 'http://localhost:3000'))),
-=======
-    'allowed_origins' => [
-        'http://localhost:3000',      // React default port
-        'http://localhost:3001',      // Alternative port
-        'http://localhost:5173',      // Vite default port
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:5173',
-    ],
->>>>>>> 754487c (24/12)
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
@@ -39,6 +24,9 @@ return [
 
     'max_age' => 0,
 
+    // Kadang browser butuh ini true, tapi jika allowed_origins adalah '*', 
+    // ini harus false. Jika kamu spesifik menyebutkan http://localhost:3000, ini boleh true.
+    // Untuk amannya biarkan false dengan origin '*'.
     'supports_credentials' => false,
 
 ];

@@ -1,0 +1,112 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║              🚀 API QUICK REFERENCE - Airport Safety Map              ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📍 BASE URL: http://localhost:8000/api
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 🗺️  AIRPORT ENDPOINTS                                                │
+└─────────────────────────────────────────────────────────────────────┘
+
+GET    /airports                    → List all airports
+GET    /airports/{id}/stats         → Statistics & charts
+GET    /airports/{id}/hierarchy     → Branches & units
+GET    /airports/{id}/reports       → Reports list
+
+Query Parameters:
+  ?category=...          Filter by category
+  ?start_date=YYYY-MM-DD Filter date start
+  ?end_date=YYYY-MM-DD   Filter date end
+  ?month=YYYY-MM         Filter by month
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 📄 REPORT ENDPOINTS                                                  │
+└─────────────────────────────────────────────────────────────────────┘
+
+GET    /reports/{id}                → Single report detail
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 📤 UPLOAD & MANAGEMENT                                               │
+└─────────────────────────────────────────────────────────────────────┘
+
+POST   /reports/upload              → Upload Excel/CSV
+GET    /reports/upload-status/{id}  → Check upload progress
+DELETE /reports/range               → Delete by date range
+POST   /reports/restore             → Restore deleted data
+
+Body for DELETE/RESTORE:
+{
+  "start_date": "2024-01-01",
+  "end_date": "2024-01-31"
+}
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 🔧 UTILITIES                                                         │
+└─────────────────────────────────────────────────────────────────────┘
+
+GET    /airports/check-db           → Database diagnostic
+GET    /airports/test-coordinates   → Test coordinates
+POST   /cache/clear                 → Clear all cache
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ ⚡ RATE LIMITS                                                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+Upload:        10 requests/minute
+Delete/Restore: 20 requests/minute
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 📊 RESPONSE STATUS CODES                                            │
+└─────────────────────────────────────────────────────────────────────┘
+
+200 → OK
+202 → Accepted (background processing)
+404 → Not Found
+422 → Validation Error
+429 → Too Many Requests
+500 → Internal Server Error
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 🚀 QUICK START                                                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+# Start Laravel Server
+cd C:\xampp\htdocs\api-bandara
+php artisan serve
+
+# Start React App
+cd "F:\AirNav\SO\Task 1\react\airport-safety-map"
+npm start
+
+# Test API
+curl http://localhost:8000/api/airports
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 🔍 COMMON ERRORS & SOLUTIONS                                        │
+└─────────────────────────────────────────────────────────────────────┘
+
+Error: "Failed to fetch"
+→ Solution: php artisan serve (start Laravel)
+
+Error: "CORS policy"
+→ Solution: Check config/cors.php
+
+Error: "404 Not Found"
+→ Solution: php artisan route:clear
+
+Error: "500 Internal Server Error"
+→ Solution: Check storage/logs/laravel.log
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ 📚 DOCUMENTATION                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+Full API Docs:      API_ENDPOINTS.md
+Migration Guide:    MIGRATION_GUIDE.md (React)
+Optimization:       OPTIMIZATION_SUMMARY.md
+Connection Guide:   REACT_CONNECTION_GUIDE.md
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  ✅ Status: OPTIMIZED & READY                                        ║
+║  📅 Version: 2.0 | Updated: Jan 21, 2026                            ║
+╚══════════════════════════════════════════════════════════════════════╝

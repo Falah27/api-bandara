@@ -7,61 +7,75 @@ use App\Http\Controllers\ReportUploadController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes - Optimized & Clean
 |--------------------------------------------------------------------------
+| Semua endpoint dikelompokkan secara logis dengan RESTful pattern
 */
 
+// ============================================================================
+// AIRPORT ENDPOINTS
+// ============================================================================
 Route::prefix('airports')->group(function () {
     
-    Route::get('/check-db', [AirportController::class, 'checkDatabase']);
-    Route::get('/debug-distribution', [AirportController::class, 'debugDistribution']);
-    Route::get('/move-reports', [AirportController::class, 'moveReports']);
-
-    // 1. Get all airports
+    // 📍 Get all airports (Data untuk Peta)
     Route::get('/', [AirportController::class, 'index']);
     
-    // 2. Get hierarchy
-    Route::get('{id}/hierarchy', [AirportController::class, 'hierarchy']);
+    // � Debug & Utility Endpoints (HARUS DI ATAS {id} routes!)
+    Route::get('/check-db', [AirportController::class, 'checkDatabase']);
+    Route::get('/test-coordinates', [AirportController::class, 'testCoordinates']);
     
-    // 3. Get stats
-    Route::get('{id}/stats', [AirportController::class, 'stats']);
+    // 📊 Get airport statistics (Grafik & Summary)
+    Route::get('/{id}/stats', [AirportController::class, 'stats']);
     
-    // 4. Get reports by month (Lama)
-    Route::get('{id}/reports', [AirportController::class, 'getReportsByMonth']);
-
-    // ✅ 5. GET REPORTS GENERAL (BARU - UNTUK DETAIL KATEGORI)
-    Route::get('{id}/reports-general', [AirportController::class, 'getReports']);
+    // 🌳 Get airport hierarchy (Cabang Pembantu & Unit)
+    Route::get('/{id}/hierarchy', [AirportController::class, 'hierarchy']);
+    
+    // 📋 Get reports list (Per Kategori/Bulan)
+    Route::get('/{id}/reports', [AirportController::class, 'getReports']);
 });
 
-<<<<<<< HEAD
-// Debug & Utility Routes
-Route::get('/clear-cache', function () {
-    \Illuminate\Support\Facades\Cache::flush();
-    return response()->json(['message' => 'Cache cleared successfully']);
-});
+// ============================================================================
+// REPORT ENDPOINTS
+// ============================================================================
 
-Route::get('/test-coordinates', [AirportController::class, 'testCoordinates']);
-
-// Upload Routes with Rate Limiting
-Route::post('/upload-reports', [ReportUploadController::class, 'upload'])
-    ->middleware('throttle:10,1'); // Max 10 uploads per minute
-
-Route::get('/upload-status/{uploadId}', [ReportUploadController::class, 'uploadStatus']);
-
-Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange'])
-    ->middleware('throttle:20,1'); // Max 20 deletes per minute
-
-Route::post('/restore-reports', [ReportUploadController::class, 'restoreRange'])
-    ->middleware('throttle:20,1'); // Restore soft-deleted reports
-=======
-// Report Detail Route
+// 📄 Get single report detail
 Route::get('/reports/{id}', [AirportController::class, 'detailReport']);
 
-// Upload Routes
-Route::post('/upload-reports', [ReportUploadController::class, 'upload']);
-Route::post('/delete-reports', [ReportUploadController::class, 'deleteRange']);
->>>>>>> 754487c (24/12)
 
+// ============================================================================
+// FILE UPLOAD & MANAGEMENT
+// ============================================================================
+
+// 📤 Upload Excel/CSV reports
+Route::post('/reports/upload', [ReportUploadController::class, 'upload'])
+    ->middleware('throttle:10,1');
+
+// ⏳ Check upload progress
+Route::get('/reports/upload-status/{uploadId}', [ReportUploadController::class, 'uploadStatus']);
+
+// 🗑️ Delete reports by date range
+Route::delete('/reports/range', [ReportUploadController::class, 'deleteRange'])
+    ->middleware('throttle:20,1');
+
+// ♻️ Restore deleted reports
+Route::post('/reports/restore', [ReportUploadController::class, 'restoreRange'])
+    ->middleware('throttle:20,1');
+
+// ============================================================================
+// UTILITY ENDPOINTS
+// ============================================================================
+
+// 🧹 Clear application cache
+Route::post('/cache/clear', function () {
+    \Illuminate\Support\Facades\Cache::flush();
+    return response()->json([
+        'success' => true,
+        'message' => 'Cache berhasil dihapus',
+        'timestamp' => now()->toISOString()
+    ]);
+});
+
+// 👤 Get authenticated user (untuk future authentication)
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });

@@ -21,14 +21,14 @@ class ProcessReportUpload implements ShouldQueue
     protected $uploadId;
 
     /**
-     * Timeout 10 menit untuk upload besar
+     * Timeout 30 menit untuk upload data setahun
      */
-    public $timeout = 600;
+    public $timeout = 1800;
 
     /**
-     * Retry 3x jika gagal
+     * Retry 2x jika gagal
      */
-    public $tries = 3;
+    public $tries = 2;
 
     /**
      * Create a new job instance.
@@ -44,19 +44,27 @@ class ProcessReportUpload implements ShouldQueue
      */
     public function handle()
     {
+        // 🔧 Tingkatkan memory limit untuk processing data besar
+        ini_set('memory_limit', '512M');
+        
         $count = 0;
         $skipped = 0;
         $errors = [];
         $total = count($this->rows);
 
         foreach ($this->rows as $index => $row) {
-            // Update progress setiap 50 rows
-            if ($index % 50 === 0) {
+            // Update progress setiap 25 rows (lebih sering untuk feedback real-time)
+            if ($index % 25 === 0) {
                 Cache::put("upload_progress_{$this->uploadId}", [
                     'processed' => $index,
                     'total' => $total,
                     'percentage' => round(($index / $total) * 100, 1)
                 ], 3600);
+            }
+            
+            // 🔧 Free memory setiap 100 rows untuk avoid memory leak
+            if ($index % 100 === 0) {
+                gc_collect_cycles();
             }
 
             try {

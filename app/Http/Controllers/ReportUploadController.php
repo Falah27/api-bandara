@@ -23,11 +23,25 @@ class ReportUploadController extends Controller
      */
     public function upload(ReportUploadRequest $request) 
     {
+        // 🔧 SET HIGHER LIMITS untuk file besar
+        ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', '1800'); // 30 menit
+        
         // 1. File sudah tervalidasi via ReportUploadRequest
 
         try {
-            // 2. Baca Excel ke Array
-            $arrays = Excel::toArray(new ReportsImport, $request->file('file'));
+            // 2. Baca Excel ke Array dengan error handling
+            try {
+                $arrays = Excel::toArray(new ReportsImport, $request->file('file'));
+            } catch (\Exception $e) {
+                Log::error('Excel parsing error', [
+                    'error' => $e->getMessage(),
+                    'file' => $request->file('file')->getClientOriginalName()
+                ]);
+                return response()->json([
+                    'error' => 'Gagal membaca file Excel. Pastikan format file benar dan tidak corrupt.'
+                ], 422);
+            }
             $sheet = $arrays[0] ?? [];
 
             // 3. Generate unique upload ID untuk tracking
@@ -46,11 +60,22 @@ class ReportUploadController extends Controller
             // 5. Dispatch ke Queue (Background Processing)
             ProcessReportUpload::dispatch($sheet, $uploadId);
 
+            // 🔧 IMPROVEMENT: Jika queue = sync, job langsung selesai
+            // Cek apakah sudah ada hasil dalam 2 detik (untuk sync queue)
+            sleep(2);
+            $immediateResult = Cache::get("upload_result_{$uploadId}");
+            
+            if ($immediateResult && $immediateResult['status'] === 'completed') {
+                // Job sudah selesai (sync mode), return hasil langsung
+                return response()->json($immediateResult, 200);
+            }
+
+            // Job masih berjalan (async mode), return 202
             return response()->json([
                 'message' => 'Upload dimulai. Proses berjalan di background.',
                 'upload_id' => $uploadId,
                 'total_rows' => count($sheet),
-                'check_url' => "/api/upload-status/{$uploadId}"
+                'check_url' => "/api/reports/upload-status/{$uploadId}"
             ], 202); // 202 = Accepted
 
         } catch (\Exception $e) {
@@ -66,9 +91,6 @@ class ReportUploadController extends Controller
         }
     }
 
-    /**
-     * Check Upload Progress
-     */
     public function uploadStatus($uploadId)
     {
         // Cek progress

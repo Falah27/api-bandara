@@ -20,7 +20,7 @@ class ReportUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => 'required|file|mimes:xlsx,csv,xls|max:10240', // Max 10MB
+            'file' => 'required|file|mimes:xlsx,csv,xls|max:51200', // Max 50MB (untuk data setahun)
         ];
     }
 
